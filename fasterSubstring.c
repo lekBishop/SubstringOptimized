@@ -52,10 +52,12 @@ It is assumed that the txt files are one line.
 */
 int main(int argc, char *argv[])
 {
+    struct timespec start,finish;
+    double elapsed;
     FILE *infile1, *infile2;
     char *str1, *str2;
     long numbytes1, numbytes2;
-    clock_t start, end;
+    //clock_t start, end;
     pthread_t threads[NUM_THREADS];
     struct thread_data *tinfo;
     int length;
@@ -107,7 +109,7 @@ int main(int argc, char *argv[])
     
     length = numbytes1 / NUM_THREADS;
 
-    start = clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
     for (int i = 0; i < NUM_THREADS; i++)
     {
         tinfo[i].length = length;
@@ -128,8 +130,10 @@ int main(int argc, char *argv[])
 
         length = MAX(length, tinfo[i].result);
     }
-    end = clock();
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
     printf("The longest substring is %d characters long\n", length);
-    printf("Calculation took %f seconds\n", (double)(end - start) / CLOCKS_PER_SEC);
+    printf("Calculation took %f seconds\n", elapsed);
 }
