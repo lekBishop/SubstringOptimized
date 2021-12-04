@@ -1,5 +1,5 @@
 fasterSubstring:
-	gcc -pthread -Wall fasterSubstring.c -o fasterSubstring
+	gcc -O3 -pthread -Wall fasterSubstring.c -o fasterSubstring
 
 slowestSubstring:
 	gcc -pthread -Wall slowestSubstring.c -o slowestSubstring
