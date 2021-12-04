@@ -1,8 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
 
+#define NUM_THREADS 10
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
+
+struct thread_data {
+    char *str1, *str2;
+    long n;
+    int start, length, result;
+};
 
 static void die(const char * err)
 {
@@ -20,19 +28,22 @@ static int commonlen(char *s1, char *s2)
     return res;
 }
 
-static int LCS(char *str1, char *str2, long n, long m)
+static void *LCS(void *arg)
 {
-    int res = 0;
+    int res, end;
+    struct thread_data *args = arg;
 
-    for(int i = 0; i <= n; i++)
+    end = args->start + args->length;
+
+    for(int i = args->start; i <= end; i++)
     {
-        for(int j = 0; j <= m; j++)
+        for(int j = 0; j <= args->n; j++)
         {
-           res = MAX(res, commonlen(str1 + i, str2 + j));
+           args->result = MAX(args->result, commonlen(args->str1 + i, args->str2 + j));
         }
     }
 
-    return res;
+    pthread_exit(NULL);
 }
 
 /*
@@ -42,9 +53,14 @@ It is assumed that the txt files are one line.
 int main(int argc, char *argv[])
 {
     FILE *infile1, *infile2;
-    char *buf1, *buf2;
-    long numbytes1, numbytes2, length;
+    char *str1, *str2;
+    long numbytes1, numbytes2;
     clock_t start, end;
+    pthread_t threads[NUM_THREADS];
+    struct thread_data *tinfo;
+    int length;
+    void *res;
+
 
     if(argc !=3) {
         fprintf(stderr, "Usage: %s <file 1> <file 2>", argv[0]);
@@ -70,20 +86,48 @@ int main(int argc, char *argv[])
     rewind(infile2);
 
     // Allocate strings and null terminate
-    buf1 = malloc(numbytes1 + 1);
-    buf2 = malloc(numbytes2 + 1);
+    str1 = malloc(numbytes1 + 1);
+    str2 = malloc(numbytes2 + 1);
 
-    if (!buf1 || !buf2)
+    if (!str1 || !str2)
         die("Malloc Failed");
 
-    buf1[numbytes1] = '\0';
-    buf2[numbytes2] = '\0';
+    str1[numbytes1] = '\0';
+    str2[numbytes2] = '\0';
     
-    if (fread(buf1, 1, numbytes1, infile1) != numbytes1 || fread(buf2, 1, numbytes2, infile2) != numbytes2)
+    if (fread(str1, 1, numbytes1, infile1) != numbytes1 || fread(str2, 1, numbytes2, infile2) != numbytes2)
         die("fread error");
 
+    tinfo = calloc(NUM_THREADS, sizeof(*tinfo));
+
+    if (tinfo == NULL)
+    {
+        die("thread args fail");
+    }
+    
+    length = numbytes1 / NUM_THREADS;
+
     start = clock();
-    length = LCS(buf1, buf2, numbytes1, numbytes2);
+    for (int i = 0; i < NUM_THREADS; i++)
+    {
+        tinfo[i].length = length;
+        tinfo[i].n = numbytes2;
+        tinfo[i].start = length * i;
+        tinfo[i].str1 = str1;
+        tinfo[i].str2 = str2;
+        tinfo[i].result = 0;
+
+        pthread_create(&threads[i], NULL, LCS, &tinfo[i]);
+    }
+
+    length = 0;
+
+    for (int i = 0; i < NUM_THREADS; i++)
+    {
+        pthread_join(threads[i], NULL);
+
+        length = MAX(length, tinfo[i].result);
+    }
     end = clock();
 
     printf("The longest substring is %ld characters long\n", length);
