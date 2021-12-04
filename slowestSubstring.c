@@ -10,22 +10,22 @@ static void die(const char * err)
     exit(1);
 }
 
-static int LCS(char *str1, char *str2, long m, long n)
+static int LCS(char *str1, char *str2, long n, long m)
 {
-    int lengths[m + 1][n + 1];
+    int lengths[2][m + 1];
     int res = 0;
 
-    for(int i = 0; i <= m; i++)
+    for(int i = 1; i <= n; i++)
     {
-        for(int j = 0; j <= n; j++)
+        for(int j = 1; j <= m; j++)
         {
-            if (i == 0 || j == 0)
-                lengths[i][j] = 0;
-            else if (str1[i - 1] == str2[j - 1]) {
-                lengths[i][j] = lengths[i - 1][j - 1] + 1;
-                res = MAX(res, lengths[i][j]);
+            if (str1[i - 1] == str2[j - 1]) {
+                lengths[i % 2][j] = lengths[(i - 1) % 2][j - 1] + 1;
+                if (lengths[i % 2][j] > res)
+                    res = lengths[i % 2][j];
             }
-            else lengths[i][j] = 0;
+            else 
+                lengths[i % 2][j] = 0;
         }
     }
 
@@ -62,8 +62,6 @@ int main(int argc, char *argv[])
     fseek(infile2, 0L, SEEK_END);
     numbytes2 = ftell(infile2);
 
-    printf("File1: %ld\nFile2: %ld", numbytes1, numbytes2);
-
     // Reset File pointers to start
     rewind(infile1);
     rewind(infile2);
@@ -85,6 +83,6 @@ int main(int argc, char *argv[])
     length = LCS(buf1, buf2, numbytes1, numbytes2);
     end = clock();
 
-    printf("The longest substring is: %ld characters long\n", length);
-    printf("Calculation took %d seconds\n", (double)(start-end) / CLOCKS_PER_SEC);
+    printf("The longest substring is %ld characters long\n", length);
+    printf("Calculation took %f seconds\n", (double)(end - start) / CLOCKS_PER_SEC);
 }
