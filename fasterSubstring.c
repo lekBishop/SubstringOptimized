@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
@@ -9,22 +10,25 @@ static void die(const char * err)
     exit(1);
 }
 
-static int LCS(char *str1, char *str2, long m, long n)
+static int commonlen(char *s1, char *s2)
 {
-    int lengths[m + 1][n + 1];
     int res = 0;
 
-    for(int i = 0; i <= m; i++)
+    while(*s1 && *s2 && (*s1++ == *s2++))
+        ++res;
+
+    return res;
+}
+
+static int LCS(char *str1, char *str2, long n, long m)
+{
+    int res = 0;
+
+    for(int i = 0; i <= n; i++)
     {
-        for(int j = 0; j <= n; j++)
+        for(int j = 0; j <= m; j++)
         {
-            if (i == 0 || j == 0)
-                lengths[i][j] = 0;
-            else if (str1[i - 1] == str2[j - 1]) {
-                lengths[i][j] = lengths[i - 1][j - 1] + 1;
-                res = MAX(res, lengths[i][j]);
-            }
-            else lengths[i][j] = 0;
+           res = MAX(res, commonlen(str1 + i, str2 + j));
         }
     }
 
@@ -40,6 +44,7 @@ int main(int argc, char *argv[])
     FILE *infile1, *infile2;
     char *buf1, *buf2;
     long numbytes1, numbytes2, length;
+    clock_t start, end;
 
     if(argc !=3) {
         fprintf(stderr, "Usage: %s <file 1> <file 2>", argv[0]);
@@ -68,17 +73,19 @@ int main(int argc, char *argv[])
     buf1 = malloc(numbytes1 + 1);
     buf2 = malloc(numbytes2 + 1);
 
-    buf1[numbytes1] = '\0';
-    buf2[numbytes2] = '\0';
-
     if (!buf1 || !buf2)
         die("Malloc Failed");
+
+    buf1[numbytes1] = '\0';
+    buf2[numbytes2] = '\0';
     
     if (fread(buf1, 1, numbytes1, infile1) != numbytes1 || fread(buf2, 1, numbytes2, infile2) != numbytes2)
         die("fread error");
 
+    start = clock();
     length = LCS(buf1, buf2, numbytes1, numbytes2);
+    end = clock();
 
-    printf("The longest substring is: %ld characters long\n", length);
+    printf("The longest substring is %ld characters long\n", length);
+    printf("Calculation took %f seconds\n", (double)(end - start) / CLOCKS_PER_SEC);
 }
-
