@@ -10,22 +10,25 @@ static void die(const char * err)
     exit(1);
 }
 
-static int LCS(char *str1, char *str2, long n, long m)
+static int commonlen(char *s1, char *s2)
 {
-    int lengths[2][m + 1];
     int res = 0;
 
-    for(int i = 1; i <= n; i++)
+    while(*s1 && *s2 && (*s1++ == *s2++))
+        ++res;
+
+    return res;
+}
+
+static int LCS(char *str1, char *str2, long n, long m)
+{
+    int res = 0;
+
+    for(int i = 0; i <= n; i++)
     {
-        for(int j = 1; j <= m; j++)
+        for(int j = 0; j <= m; j++)
         {
-            if (str1[i - 1] == str2[j - 1]) {
-                lengths[i % 2][j] = lengths[(i - 1) % 2][j - 1] + 1;
-                if (lengths[i % 2][j] > res)
-                    res = lengths[i % 2][j];
-            }
-            else 
-                lengths[i % 2][j] = 0;
+           res = MAX(res, commonlen(str1 + i, str2 + j));
         }
     }
 
