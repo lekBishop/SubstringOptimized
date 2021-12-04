@@ -3,7 +3,7 @@
 #include <time.h>
 #include <pthread.h>
 
-#define NUM_THREADS 10
+#define NUM_THREADS 100
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
 struct thread_data {
@@ -30,7 +30,7 @@ static int commonlen(char *s1, char *s2)
 
 static void *LCS(void *arg)
 {
-    int res, end;
+    int end;
     struct thread_data *args = arg;
 
     end = args->start + args->length;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     pthread_t threads[NUM_THREADS];
     struct thread_data *tinfo;
     int length;
-    void *res;
+    //void *res;
 
 
     if(argc !=3) {
@@ -130,6 +130,6 @@ int main(int argc, char *argv[])
     }
     end = clock();
 
-    printf("The longest substring is %ld characters long\n", length);
+    printf("The longest substring is %d characters long\n", length);
     printf("Calculation took %f seconds\n", (double)(end - start) / CLOCKS_PER_SEC);
 }
