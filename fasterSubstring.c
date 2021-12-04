@@ -44,6 +44,7 @@ static void *LCS(void *arg)
     }
 
     pthread_exit(NULL);
+    return 0;
 }
 
 /*
