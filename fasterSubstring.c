@@ -5,6 +5,8 @@
 
 #define NUM_THREADS 100
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define likely(x)      __builtin_expect(!!(x), 1)
+#define unlikely(x)    __builtin_expect(!!(x), 0)
 
 struct thread_data {
     char *str1, *str2;
@@ -22,7 +24,7 @@ static int commonlen(char *s1, char *s2)
 {
     int res = 0;
 
-    while(*s1 && *s2 && (*s1++ == *s2++))
+    while(*s1 && *s2 && unlikely(*s1++ == *s2++))
         ++res;
 
     return res;

@@ -4,6 +4,9 @@
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
+
+unsigned long unlikely = 0, likely = 0;
+
 static void die(const char * err)
 {
     fprintf(stderr, "Error: %s", err);
@@ -14,8 +17,17 @@ static int commonlen(char *s1, char *s2)
 {
     int res = 0;
 
-    while(*s1 && *s2 && (*s1++ == *s2++))
-        ++res;
+    while(*s1 && *s2) {
+        if (*s1++ == *s2++) {
+            likely++;
+            ++res;
+        } else {
+            unlikely++;
+            break;
+        }
+            
+    }
+        
 
     return res;
 }
@@ -88,4 +100,5 @@ int main(int argc, char *argv[])
 
     printf("The longest substring is %ld characters long\n", length);
     printf("Calculation took %f seconds\n", (double)(end - start) / CLOCKS_PER_SEC);
+    printf("Hits:   %ld\nMisses: %ld\n", likely, unlikely);
 }
