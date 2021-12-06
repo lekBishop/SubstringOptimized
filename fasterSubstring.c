@@ -58,11 +58,9 @@ int main(int argc, char *argv[])
     FILE *infile1, *infile2;
     char *str1, *str2;
     long numbytes1, numbytes2;
-    //clock_t start, end;
     pthread_t threads[NUM_THREADS];
     struct thread_data *tinfo;
     int length;
-    //void *res;
 
 
     if(argc !=3) {
