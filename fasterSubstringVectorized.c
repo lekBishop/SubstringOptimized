@@ -3,6 +3,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <immintrin.h>
+#include <string.h>
 
 #define toInt(a) (a - 0)
 #define NUM_THREADS 100
@@ -25,9 +26,7 @@ static void die(const char * err)
 static int commonlen(char *s1, char *s2)
 {
     int res = 0;
-    int i, j, x, ls2 = 16;
-    int s1_len = strlen(s1);
-    int s2_len = strlen(s2);
+    int i, x, ls2 = 16, ls1;
     short s1_store[16];
     short s2_store[16];
     while (*s1 && *s2 && unlikely(*s1 == *s2)) {
@@ -46,8 +45,8 @@ static int commonlen(char *s1, char *s2)
         s1_store[8], s1_store[9],s1_store[10], s1_store[11],s1_store[12], s1_store[13],s1_store[14], s1_store[15]);
         __m128i s2_vector = _mm128_set_epi8(s2_store[0], s2_store[1],s2_store[2], s2_store[3],s2_store[4], s2_store[5], s2_store[6], s2_store[7], 
         s2_store[8], s2_store[9],s2_store[10], s2_store[11],s2_store[12], s2_store[13],s2_store[14], s2_store[15]);
-        x = __mm_cmpestrc(s1_vector, ls1, s2_vector, ls2, _SIDD_CMP_RANGES);
-        print("%d\n", x);
+        x = _mm_cmpestrc(s1_vector, ls1, s2_vector, ls2, _SIDD_CMP_RANGES);
+        printf("%d\n", x);
     }
     return res;
 }
