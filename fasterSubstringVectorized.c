@@ -80,7 +80,7 @@ It is assumed that the txt files are one line.
 int main(int argc, char *argv[])
 {
     struct timespec start,finish;
-    double elapsed;
+    double elapsed, avg_elapsed;
     FILE *infile1, *infile2;
     char *str1, *str2;
     long numbytes1, numbytes2;
@@ -127,41 +127,47 @@ int main(int argc, char *argv[])
     if (fread(str1, 1, numbytes1, infile1) != numbytes1 || fread(str2, 1, numbytes2, infile2) != numbytes2)
         die("fread error");
 
-    tinfo = calloc(num_threads, sizeof(*tinfo));
-
-    if (tinfo == NULL)
+    avg_elapsed = 0;
+    for(int i= 0; i < 100; i++)
     {
-        die("thread args fail");
+        tinfo = calloc(num_threads, sizeof(*tinfo));
+
+        if (tinfo == NULL)
+        {
+            die("thread args fail");
+        }
+        
+        length = numbytes1 / num_threads;
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        for (int i = 0; i < num_threads; i++)
+        {
+            tinfo[i].length = length;
+            tinfo[i].m = numbytes1;
+            tinfo[i].n = numbytes2;
+            tinfo[i].start = length * i;
+            tinfo[i].str1 = str1;
+            tinfo[i].str2 = str2;
+            tinfo[i].result = 0;
+
+            pthread_create(&threads[i], NULL, LCS, &tinfo[i]);
+        }
+
+        length = 0;
+
+        for (int i = 0; i < num_threads; i++)
+        {
+            pthread_join(threads[i], NULL);
+
+            length = MAX(length, tinfo[i].result);
+        }
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        elapsed = (finish.tv_sec - start.tv_sec);
+        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+        avg_elapsed += elapsed;
+        free(tinfo);
     }
-    
-    length = numbytes1 / num_threads;
-
-    clock_gettime(CLOCK_MONOTONIC, &start);
-    for (int i = 0; i < num_threads; i++)
-    {
-        tinfo[i].length = length;
-        tinfo[i].m = numbytes1;
-        tinfo[i].n = numbytes2;
-        tinfo[i].start = length * i;
-        tinfo[i].str1 = str1;
-        tinfo[i].str2 = str2;
-        tinfo[i].result = 0;
-
-        pthread_create(&threads[i], NULL, LCS, &tinfo[i]);
-    }
-
-    length = 0;
-
-    for (int i = 0; i < num_threads; i++)
-    {
-        pthread_join(threads[i], NULL);
-
-        length = MAX(length, tinfo[i].result);
-    }
-    clock_gettime(CLOCK_MONOTONIC, &finish);
-    elapsed = (finish.tv_sec - start.tv_sec);
-    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
     printf("The longest substring is %d characters long\n", length);
-    printf("Calculation took %f seconds\n", elapsed);
+    printf("Calculation took %f seconds\n", avg_elapsed);
 }
