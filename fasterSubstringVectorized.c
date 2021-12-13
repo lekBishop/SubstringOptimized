@@ -136,7 +136,6 @@ int main(int argc, char *argv[])
     
     length = numbytes1 / num_threads;
 
-    {
     clock_gettime(CLOCK_MONOTONIC, &start);
     for (int i = 0; i < num_threads; i++)
     {
@@ -162,7 +161,6 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &finish);
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-    }
 
     printf("The longest substring is %d characters long\n", length);
     printf("Calculation took %f seconds\n", elapsed);
