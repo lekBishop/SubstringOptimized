@@ -41,10 +41,10 @@ static int commonlen(char *s1, char *s2)
             s1_store[i] = (short) toInt(*(s1++));
             s2_store[i] = (short) toInt(*(s2++));
         }
-        __m128i s1_vector = _mm128_set_epi8(s1_store[0], s1_store[1],s1_store[2], s1_store[3],s1_store[4], s1_store[5], s1_store[6], s1_store[7], 
-        s1_store[8], s1_store[9],s1_store[10], s1_store[11],s1_store[12], s1_store[13],s1_store[14], s1_store[15]);
-        __m128i s2_vector = _mm128_set_epi8(s2_store[0], s2_store[1],s2_store[2], s2_store[3],s2_store[4], s2_store[5], s2_store[6], s2_store[7], 
-        s2_store[8], s2_store[9],s2_store[10], s2_store[11],s2_store[12], s2_store[13],s2_store[14], s2_store[15]);
+        __m128i s1_vector = _mm128_set_epi8((__m128i *)s1_store[0], (__m128i *)s1_store[1], (__m128i *)s1_store[2], (__m128i *)s1_store[3], (__m128i *)s1_store[4], (__m128i *)s1_store[5], (__m128i *)s1_store[6], (__m128i *)s1_store[7], 
+        (__m128i *)s1_store[8], (__m128i *)s1_store[9], (__m128i *)s1_store[10], (__m128i *)s1_store[11], (__m128i *)s1_store[12], (__m128i *)s1_store[13], (__m128i *)s1_store[14], (__m128i *)s1_store[15]);
+        __m128i s2_vector = _mm128_set_epi8((__m128i *)s2_store[0], (__m128i *)s2_store[1], (__m128i *)s2_store[2], (__m128i *)s2_store[3], (__m128i *)s2_store[4], (__m128i *)s2_store[5], (__m128i *)s2_store[6], (__m128i *)s2_store[7], 
+        (__m128i *)s2_store[8], (__m128i *)s2_store[9], (__m128i *)s2_store[10], (__m128i *)s2_store[11], (__m128i *)s2_store[12], (__m128i *)s2_store[13], (__m128i *)s2_store[14], (__m128i *)s2_store[15]);
         x = _mm_cmpestrc(s1_vector, ls1, s2_vector, ls2, _SIDD_CMP_RANGES);
         printf("%d\n", x);
     }
