@@ -25,21 +25,25 @@ static void die(const char * err)
 
 static int commonlen(int length_s1, int length_s2, char *s1, char *s2)
 {
-    int res = 0, s1_pos = 0, s2_pos = 0;
-    short comp_vector[16];
+    int res = 0, pos = 0;
+    char vector1[16];
 
-    while (s1_pos + 16 < length_s1 && s2_pos + 16 < length_s2) {
-        __m128i s1_vector = _mm_loadu_epi8((__m128i*) s1);
-        __m128i s2_vector = _mm_loadu_epi8((__m128i*) s2);
-        __m128i compare = _mm_cmpeq_epi8 (s1_vector, s2_vector);
-        _mm_storeu_epi8((__m128i*) comp_vector, compare);
+    while (pos + 16 < length_s1 && pos + 16 < length_s2) {
+        __m256i s1_vector = _mm256_lddqu_si256((__m256i const *)s1);
+        __m256i s2_vector = _mm256_lddqu_si256((__m256i const *)s2);
+        __m256i compare = _mm256_cmpeq_epi32(s1_vector, s2_vector);
+        _mm256_storeu_epi32((__m256i*) vector1, compare);
         
-        for (size_t i = 0; i < 16; i++)
+        for (int i = 0; i < 16; i++)
         {
-            printf("comp[i]: %d\n", comp_vector[i]);
+            
+            pos++;
+            s1++;
+            s2++;
+            if (!vector1[i])
+                return res;
+            res++;
         }
-        
-        
     }
 
     while(*s1 && *s2 && unlikely(*s1++ == *s2++))
@@ -99,16 +103,8 @@ int main(int argc, char *argv[])
     // Get bytes in first file
     fseek(infile1, 0L, SEEK_END);
     numbytes1 = ftell(infile1);
-
-    if (numbytes1 >= 10000)
-        num_threads = MAX_THREADS;
-    else if (numbytes1 >= 1000)
-        num_threads = 10;
-    else if (numbytes1 >= 100)
-        num_threads = 2;
-    else
+        
         num_threads = 1;
-
 
     // Get bytes in second file
     fseek(infile2, 0L, SEEK_END);
@@ -140,6 +136,7 @@ int main(int argc, char *argv[])
     
     length = numbytes1 / num_threads;
 
+    {
     clock_gettime(CLOCK_MONOTONIC, &start);
     for (int i = 0; i < num_threads; i++)
     {
@@ -165,6 +162,7 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &finish);
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    }
 
     printf("The longest substring is %d characters long\n", length);
     printf("Calculation took %f seconds\n", elapsed);

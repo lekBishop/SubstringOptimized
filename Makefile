@@ -5,7 +5,7 @@ slowestSubstring:
 	gcc -pthread -Wall slowestSubstring.c -o slowestSubstring
 
 fasterSubstringVectorized:
-	gcc -pthread -Wall -mavx2 fasterSubstringVectorized.c -o fasterSubstringVectorized
+	gcc -O3 -pthread -Wall -mavx2 -mavx2 -mavx512vl -mavx512bw fasterSubstringVectorized.c -o fasterSubstringVectorized
 
 all: clean fasterSubstring fasterSubstringVectorized slowestSubstring
 

@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     }
     
     length = numbytes1 / NUM_THREADS;
-
+    
     clock_gettime(CLOCK_MONOTONIC, &start);
     for (int i = 0; i < NUM_THREADS; i++)
     {
