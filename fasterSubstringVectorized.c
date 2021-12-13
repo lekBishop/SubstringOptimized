@@ -6,14 +6,14 @@
 #include <string.h>
 
 #define toInt(a) (a - 0)
-#define NUM_THREADS 100
+#define MAX_THREADS 100
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
 
 struct thread_data {
     char *str1, *str2;
-    long n;
+    long n, m;
     int start, length, result;
 };
 
@@ -23,31 +23,28 @@ static void die(const char * err)
     exit(1);
 }
 
-static int commonlen(char *s1, char *s2)
+static int commonlen(int length_s1, int length_s2, char *s1, char *s2)
 {
-    int res = 0;
-    int i, x, ls2 = 16, ls1;
-    short s1_store[16];
-    short s2_store[16];
-    while (*s1 && *s2 && unlikely(*s1 == *s2)) {
-		ls1 = 16;
-        for (i = 0; i < 16; i++){
-            if (s1 && s2){
-                ;
-            } else{
-                ls1 = i + 1;
-                break;
-            }
-            s1_store[i] = (short) toInt(*(s1++));
-            s2_store[i] = (short) toInt(*(s2++));
+    int res = 0, s1_pos = 0, s2_pos = 0;
+    short comp_vector[16];
+
+    while (s1_pos + 16 < length_s1 && s2_pos + 16 < length_s2) {
+        __m128i s1_vector = _mm_loadu_epi8((__m128i*) s1);
+        __m128i s2_vector = _mm_loadu_epi8((__m128i*) s2);
+        __m128i compare = _mm_cmpeq_epi8 (s1_vector, s2_vector);
+        _mm_storeu_epi8((__m128i*) comp_vector, compare);
+        
+        for (size_t i = 0; i < 16; i++)
+        {
+            printf("comp[i]: %d\n", comp_vector[i]);
         }
-        __m128i s1_vector = _mm128_set_epi8((__m128i *)s1_store[0], (__m128i *)s1_store[1], (__m128i *)s1_store[2], (__m128i *)s1_store[3], (__m128i *)s1_store[4], (__m128i *)s1_store[5], (__m128i *)s1_store[6], (__m128i *)s1_store[7], 
-        (__m128i *)s1_store[8], (__m128i *)s1_store[9], (__m128i *)s1_store[10], (__m128i *)s1_store[11], (__m128i *)s1_store[12], (__m128i *)s1_store[13], (__m128i *)s1_store[14], (__m128i *)s1_store[15]);
-        __m128i s2_vector = _mm128_set_epi8((__m128i *)s2_store[0], (__m128i *)s2_store[1], (__m128i *)s2_store[2], (__m128i *)s2_store[3], (__m128i *)s2_store[4], (__m128i *)s2_store[5], (__m128i *)s2_store[6], (__m128i *)s2_store[7], 
-        (__m128i *)s2_store[8], (__m128i *)s2_store[9], (__m128i *)s2_store[10], (__m128i *)s2_store[11], (__m128i *)s2_store[12], (__m128i *)s2_store[13], (__m128i *)s2_store[14], (__m128i *)s2_store[15]);
-        x = _mm_cmpestrc(s1_vector, ls1, s2_vector, ls2, _SIDD_CMP_RANGES);
-        printf("%d\n", x);
+        
+        
     }
+
+    while(*s1 && *s2 && unlikely(*s1++ == *s2++))
+        ++res;
+
     return res;
 }
 
@@ -62,8 +59,10 @@ static void *LCS(void *arg)
     {
         for(int j = 0; j <= args->n; j++)
         {
-           args->result = MAX(args->result, commonlen(args->str1 + i, args->str2 + j));
+           args->result = MAX(args->result, commonlen(args->m - i, args->n - j, args->str1 + i, args->str2 + j));
         }
+        if (args->result >= args->m - i)
+            break;
     }
 
     pthread_exit(NULL);
@@ -81,9 +80,9 @@ int main(int argc, char *argv[])
     FILE *infile1, *infile2;
     char *str1, *str2;
     long numbytes1, numbytes2;
-    pthread_t threads[NUM_THREADS];
+    pthread_t threads[MAX_THREADS];
     struct thread_data *tinfo;
-    int length;
+    int length, num_threads;
 
 
     if(argc !=3) {
@@ -100,6 +99,16 @@ int main(int argc, char *argv[])
     // Get bytes in first file
     fseek(infile1, 0L, SEEK_END);
     numbytes1 = ftell(infile1);
+
+    if (numbytes1 >= 10000)
+        num_threads = MAX_THREADS;
+    else if (numbytes1 >= 1000)
+        num_threads = 10;
+    else if (numbytes1 >= 100)
+        num_threads = 2;
+    else
+        num_threads = 1;
+
 
     // Get bytes in second file
     fseek(infile2, 0L, SEEK_END);
@@ -122,19 +131,20 @@ int main(int argc, char *argv[])
     if (fread(str1, 1, numbytes1, infile1) != numbytes1 || fread(str2, 1, numbytes2, infile2) != numbytes2)
         die("fread error");
 
-    tinfo = calloc(NUM_THREADS, sizeof(*tinfo));
+    tinfo = calloc(num_threads, sizeof(*tinfo));
 
     if (tinfo == NULL)
     {
         die("thread args fail");
     }
     
-    length = numbytes1 / NUM_THREADS;
+    length = numbytes1 / num_threads;
 
     clock_gettime(CLOCK_MONOTONIC, &start);
-    for (int i = 0; i < NUM_THREADS; i++)
+    for (int i = 0; i < num_threads; i++)
     {
         tinfo[i].length = length;
+        tinfo[i].m = numbytes1;
         tinfo[i].n = numbytes2;
         tinfo[i].start = length * i;
         tinfo[i].str1 = str1;
@@ -146,7 +156,7 @@ int main(int argc, char *argv[])
 
     length = 0;
 
-    for (int i = 0; i < NUM_THREADS; i++)
+    for (int i = 0; i < num_threads; i++)
     {
         pthread_join(threads[i], NULL);
 
