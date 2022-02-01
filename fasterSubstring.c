@@ -86,15 +86,8 @@ int main(int argc, char *argv[])
     // Get bytes in second file
     fseek(infile2, 0L, SEEK_END);
     numbytes2 = ftell(infile2);
-
-    if (numbytes1 >= 10000)
-        num_threads = 100;
-    if (numbytes1 >= 1000)
-        num_threads = 50;
-    if (numbytes1 >= 100)
-        num_threads = 4;
-    else
-        num_threads = 1;
+    
+    num_threads = 10;
 
     // Reset File pointers to start
     rewind(infile1);
@@ -114,7 +107,7 @@ int main(int argc, char *argv[])
         die("fread error");
 
     avg_elapsed = 0;
-    for (size_t i = 0; i < 1; i++)
+    for (size_t i = 0; i < 10; i++)
     {
         tinfo = calloc(num_threads, sizeof(*tinfo));
 
@@ -152,10 +145,9 @@ int main(int argc, char *argv[])
         elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
         avg_elapsed += elapsed;
         free(tinfo);
-        printf("Calculation took %f seconds\n", elapsed);
     }
 
-    avg_elapsed = avg_elapsed / 50;
+    avg_elapsed = avg_elapsed / 10;
 
     printf("The longest substring is %d characters long\n", length);
     printf("Average calculation took %f seconds\n", avg_elapsed);

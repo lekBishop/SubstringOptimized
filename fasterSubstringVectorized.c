@@ -104,8 +104,6 @@ int main(int argc, char *argv[])
     fseek(infile1, 0L, SEEK_END);
     numbytes1 = ftell(infile1);
         
-        num_threads = 1;
-
     // Get bytes in second file
     fseek(infile2, 0L, SEEK_END);
     numbytes2 = ftell(infile2);
@@ -128,7 +126,9 @@ int main(int argc, char *argv[])
         die("fread error");
 
     avg_elapsed = 0;
-    for(int i= 0; i < 1; i++)
+    num_threads = 10;
+
+    for(int i= 0; i < 10; i++)
     {
         tinfo = calloc(num_threads, sizeof(*tinfo));
 
@@ -167,6 +167,8 @@ int main(int argc, char *argv[])
         avg_elapsed += elapsed;
         free(tinfo);
     }
+
+    avg_elapsed = avg_elapsed / 10;
 
     printf("The longest substring is %d characters long\n", length);
     printf("Calculation took %f seconds\n", avg_elapsed);
