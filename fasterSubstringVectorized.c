@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
         die("fread error");
 
     avg_elapsed = 0;
-    for(int i= 0; i < 100; i++)
+    for(int i= 0; i < 1; i++)
     {
         tinfo = calloc(num_threads, sizeof(*tinfo));
 

@@ -42,6 +42,7 @@ static void *LCS(void *arg)
         for(int j = 0; j <= args->n; j++)
         {
            args->result = MAX(args->result, commonlen(args->str1 + i, args->str2 + j));
+           
         }
         if (args->result >= args->m - i)
             break;
@@ -113,7 +114,7 @@ int main(int argc, char *argv[])
         die("fread error");
 
     avg_elapsed = 0;
-    for (size_t i = 0; i < 50; i++)
+    for (size_t i = 0; i < 1; i++)
     {
         tinfo = calloc(num_threads, sizeof(*tinfo));
 
