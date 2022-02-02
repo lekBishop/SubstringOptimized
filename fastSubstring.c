@@ -126,9 +126,9 @@ int main(int argc, char *argv[])
         die("fread error");
 
     avg_elapsed = 0;
-    num_threads = 10;
+    num_threads = 20;
 
-    for(int i= 0; i < 10; i++)
+    for(int i= 0; i < 1; i++)
     {
         tinfo = calloc(num_threads, sizeof(*tinfo));
 
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
         free(tinfo);
     }
 
-    avg_elapsed = avg_elapsed / 10;
+    avg_elapsed = avg_elapsed / 1;
 
     printf("The longest substring is %d characters long\n", length);
     printf("Calculation took %f seconds\n", avg_elapsed);

@@ -5,8 +5,6 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
 
-unsigned long unlikely = 0, likely = 0;
-
 static void die(const char * err)
 {
     fprintf(stderr, "Error: %s", err);
@@ -19,10 +17,8 @@ static int commonlen(char *s1, char *s2)
 
     while(*s1 && *s2) {
         if (*s1++ == *s2++) {
-            likely++;
             ++res;
         } else {
-            unlikely++;
             break;
         }
             
@@ -56,7 +52,8 @@ int main(int argc, char *argv[])
     FILE *infile1, *infile2;
     char *buf1, *buf2;
     long numbytes1, numbytes2, length;
-    clock_t start, end;
+    double elapsed;
+    struct timespec start,finish;
 
     if(argc !=3) {
         fprintf(stderr, "Usage: %s <file 1> <file 2>", argv[0]);
@@ -94,11 +91,13 @@ int main(int argc, char *argv[])
     if (fread(buf1, 1, numbytes1, infile1) != numbytes1 || fread(buf2, 1, numbytes2, infile2) != numbytes2)
         die("fread error");
 
-    start = clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
     length = LCS(buf1, buf2, numbytes1, numbytes2);
-    end = clock();
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
     printf("The longest substring is %ld characters long\n", length);
-    printf("Calculation took %f seconds\n", (double)(end - start) / CLOCKS_PER_SEC);
-    printf("Hits:   %ld\nMisses: %ld\n", likely, unlikely);
+    printf("Calculation took %f seconds\n", elapsed);
 }
